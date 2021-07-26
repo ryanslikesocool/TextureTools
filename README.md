@@ -21,25 +21,31 @@ Windows can be found in the menu bar under `Tools/ifelse/TextureTools`
 
 ## Noise Tool (`Tools/ifelse/TextureTools/Noise Creator`)
 The Noise Tool can generate 2D and 3D noise textures with multiple configurable options.\
-![Noise Tool sample image](images~/noiseSample.jpg)\
-- Dimensionality: is the result texture 2D or 3D?  (3D textures will be exported as a `.asset` file)
+![Noise Tool sample image](images~/noiseSample.jpg)
+- Dimensionality: is the result texture 2D or 3D?
+    - 2D: Classic, timeless, flat.  Good for general use.  Will export as a normal image based on the Dynamic Range setting.
+    - 3D: Extra dimension of color (wow!).  Good for use in vector fields.  Will export as `.asset` and can only be used in Unity.
 - Channels: how many channels should the result texture use?  (G and B channels will default to 0.  Alpha channel will default to 1)
-- Dynamic Range: what dynamic range should the result texture use?  (2D textures will export as `.png` for LDR and `.exr` for HDR)
+- Dynamic Range: what dynamic range should the result texture use?
+    - LDR: Low Dynamic Range.  Less colors and more likely to be web-safe.  2D textures will export as `.png`
+    - HDR: High Dynamic Range.  More colors and generally looks better.  2D textures will export as `.exr`
 - Color Space: what color space should Unity use when creating the texture?
 - Size: how large should the texture be (in pixels)?
 - Random: what method should be used when generating colors?  Generation conforms to the Channels setting.  Unused channels will not be calculated
     - Random: assigns a pseudo random value for each channel of each pixel.
     - Perlin: use the perlin noise method for each channel based on UV coordinates.  Uses Scale and Offset settings.
     - Simplex: use the simplex noise method for each channel based on UV coordinates.  Uses Scale and Offset settings.
-- Scale: how should the UV coordinates be scaled?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
-- Offset: how should the UV coordinates be offset?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
+- Scale: how much should the UV coordinates be scaled?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
+- Offset: how far should the UV coordinates be offset?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
 
 ## Gradient Tool (`Tools/ifelse/TextureTools/Gradient Creator`)
 The Gradient Tool can generate 2D gradients with an indefinite amount of anchors, either horizontally or vertically\
-![Gradient Tool sample image](images~/gradientSample.jpg)\
+![Gradient Tool sample image](images~/gradientSample.jpg)
 - Direction: should the gradient be rendered horizontally or vertically?  Normally best to use the longer axis of the texture size
 - Color Space: what color space should Unity use when creating the texture?
-- Dynamic Range: what dynamic range should the result texture use?  (textures will export as `.png` for LDR and `.exr` for HDR)
+- Dynamic Range: what dynamic range should the result texture use?
+    - LDR: Low Dynamic Range.  Less colors and more likely to be web-safe.  Textures will export as `.png`
+    - HDR: High Dynamic Range.  More colors and generally looks better.  Textures will export as `.exr`
 - Color Definition: how should the gradient be rendered?
     - RGB: classic, "lazy" interpolation.  Direct interpolation between values.  The same as using `Color.Lerp`.
     - HSV: convert colors to HSV color space, interpolate (mainly based on hue), then convert back to RGB.  Looks much better than RGB, but is a more expensive to render
