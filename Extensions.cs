@@ -11,6 +11,8 @@ namespace TextureTools
 {
     internal static class Extensions
     {
+        internal static bool WithinRange(this int v, int x, int y) => v >= x && v <= y;
+
         #region File
         internal static bool GetTexturePath(DynamicRange dynamicRange, out string path)
         {

@@ -7,15 +7,17 @@ using UnityEngine;
 using UnityEditor;
 using Unity.Mathematics;
 
-namespace TextureTools
+namespace TextureTools.Gradient
 {
-    public class GradientCreator : EditorWindow
+    internal class GradientCreator : EditorWindow
     {
-        private Direction direction = Direction.Horizontal;
-        private ColorSpace colorSpace = ColorSpace.Gamma;
-        private DynamicRange dynamicRange = DynamicRange.LDR;
-        private ColorDefinition colorDefinition = ColorDefinition.RGB;
-        private int2 textureSize = new int2(1024, 4);
+        public GradientTexture textureAsset = null;
+
+        public Direction direction = Direction.Horizontal;
+        public ColorSpace colorSpace = ColorSpace.Gamma;
+        public DynamicRange dynamicRange = DynamicRange.LDR;
+        public ColorDefinition colorDefinition = ColorDefinition.RGB;
+        public int2 textureSize = new int2(1024, 4);
         public Anchor[] anchors = new Anchor[0];
 
         private SerializedObject serializedObject = null;
@@ -30,22 +32,21 @@ namespace TextureTools
 
         private void OnGUI()
         {
-            if (serializedObject == null)
+            if (textureAsset == null || serializedObject.targetObject == null)
             {
-                serializedObject = new SerializedObject(this);
+                TemporaryGradientEditor();
+            }
+            else
+            {
+                AssetGradientEditor();
+                serializedObject.Update();
             }
 
-            serializedObject.Update();
-
-            direction = (Direction)EditorGUILayout.EnumPopup("Direction", direction);
-            colorSpace = (ColorSpace)EditorGUILayout.EnumPopup("Color Space", colorSpace);
-            dynamicRange = (DynamicRange)EditorGUILayout.EnumPopup("Dynamic Range", dynamicRange);
-            colorDefinition = (ColorDefinition)EditorGUILayout.EnumPopup("Color Definition", colorDefinition);
-
-            Vector2Int size = new Vector2Int(textureSize.x, textureSize.y);
-            size = EditorGUILayout.Vector2IntField("Texture Size", size);
-            textureSize = new int2(size.x, size.y);
-
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("direction"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("colorSpace"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamicRange"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("colorDefinition"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("textureSize"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("anchors"));
 
             serializedObject.ApplyModifiedProperties();
@@ -53,6 +54,34 @@ namespace TextureTools
             if (GUILayout.Button("Create Gradient"))
             {
                 Create();
+            }
+        }
+
+        private void TemporaryGradientEditor()
+        {
+            if (serializedObject == null || serializedObject.targetObject == null)
+            {
+                serializedObject = new SerializedObject(this);
+            }
+
+            serializedObject.Update();
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("textureAsset"));
+            if (GUILayout.Button("Create Asset"))
+            {
+                Save();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+        }
+
+        private void AssetGradientEditor()
+        {
+            if (serializedObject == null || serializedObject.targetObject == this)
+            {
+                serializedObject = new SerializedObject(textureAsset);
             }
         }
 
@@ -103,9 +132,9 @@ namespace TextureTools
 
                     for (int a = 0; a < anchors.Length - 1; a++)
                     {
-                        if (WithinRange(x, (int)anchors[a].time, (int)anchors[a + 1].time))
+                        if (x.WithinRange((int)anchors[a].time, (int)anchors[a + 1].time))
                         {
-                            color = (Vector4)LerpAnchors(anchors[a], anchors[a + 1], x, lerpFunc);
+                            color = (Vector4)Anchor.Lerp(anchors[a], anchors[a + 1], x, lerpFunc);
                             break;
                         }
                     }
@@ -133,9 +162,9 @@ namespace TextureTools
 
                     for (int a = anchors.Length - 1; a > 0; a--)
                     {
-                        if (WithinRange(y, (int)anchors[a].time, (int)anchors[a - 1].time))
+                        if (y.WithinRange((int)anchors[a].time, (int)anchors[a - 1].time))
                         {
-                            color = (Vector4)LerpAnchors(anchors[a], anchors[a - 1], y, lerpFunc);
+                            color = (Vector4)Anchor.Lerp(anchors[a], anchors[a - 1], y, lerpFunc);
                             break;
                         }
                     }
@@ -151,19 +180,21 @@ namespace TextureTools
             Extensions.SaveTexture(pixels, textureSize, dynamicRange, path);
         }
 
-        private static bool WithinRange(int v, int x, int y) => v >= x && v <= y;
-
-        private float4 LerpAnchors(Anchor lhs, Anchor rhs, int pixel, Func<float4, float4, float, float4> lerp)
+        private void Save()
         {
-            float t = math.remap(lhs.time, rhs.time, 0, 1, pixel);
-            return lerp((Vector4)lhs.color, (Vector4)rhs.color, t);
-        }
+            if (!Extensions.GetTexturePath("asset", out string path)) { return; }
 
-        [Serializable]
-        public struct Anchor
-        {
-            [Range(0, 1)] public float time;
-            public Color color;
+            textureAsset = (GradientTexture)ScriptableObject.CreateInstance(typeof(GradientTexture));
+
+            textureAsset.direction = direction;
+            textureAsset.colorSpace = colorSpace;
+            textureAsset.dynamicRange = dynamicRange;
+            textureAsset.colorDefinition = colorDefinition;
+            textureAsset.textureSize = textureSize;
+            textureAsset.anchors = anchors;
+
+            AssetDatabase.CreateAsset(textureAsset, path);
+            AssetDatabase.ImportAsset(path);
         }
     }
 }

@@ -6,24 +6,25 @@ using UnityEngine;
 using UnityEditor;
 using Unity.Mathematics;
 using Random = Unity.Mathematics.Random;
-using Noise = Unity.Mathematics.noise;
+using MathNoise = Unity.Mathematics.noise;
 
-namespace TextureTools
+namespace TextureTools.Noise
 {
-    public class NoiseCreator : EditorWindow
+    internal class NoiseCreator : EditorWindow
     {
-        private DynamicRange dynamicRange = DynamicRange.LDR;
-        private ColorSpace colorSpace = ColorSpace.Gamma;
+        public NoiseTexture textureAsset = null;
 
-        private Dimensionality dimensionality = Dimensionality._2D;
-        private int2 size2D = 512;
-        private int3 size3D = 512;
+        public DynamicRange dynamicRange = DynamicRange.LDR;
+        public ColorSpace colorSpace = ColorSpace.Gamma;
+        public Dimensionality dimensionality = Dimensionality._2D;
+        public int2 size2D = 512;
+        public int3 size3D = 512;
+        public Channels channels = Channels.RGBA;
+        public float4 offset = 0;
+        public float4 scale = 5;
+        public RandomType noise = RandomType.Perlin;
 
-        private Channels channels = Channels.RGBA;
-        private float4 offset = 0;
-        private float4 scale = 5;
-
-        private RandomType noise = RandomType.Perlin;
+        private SerializedObject serializedObject = null;
 
         [MenuItem("Tools/ifelse/TextureTools/Noise Creator")]
         private static void Init()
@@ -35,28 +36,33 @@ namespace TextureTools
 
         private void OnGUI()
         {
-            dimensionality = (Dimensionality)EditorGUILayout.EnumPopup("Dimensionality", dimensionality);
-            channels = (Channels)EditorGUILayout.EnumPopup("Channels", channels);
-            dynamicRange = (DynamicRange)EditorGUILayout.EnumPopup("Dynamic Range", dynamicRange);
-            colorSpace = (ColorSpace)EditorGUILayout.EnumPopup("Color Space", colorSpace);
-            if (dimensionality == Dimensionality._2D)
+            if (textureAsset == null || serializedObject.targetObject == null)
             {
-                Vector2Int size = new Vector2Int(size2D.x, size2D.y);
-                size = EditorGUILayout.Vector2IntField("Size", size);
-                size2D = new int2(size.x, size.y);
+                TemporaryNoiseEditor();
             }
             else
             {
-                Vector3Int size = new Vector3Int(size3D.x, size3D.y, size3D.z);
-                size = EditorGUILayout.Vector3IntField("Size", size);
-                size3D = new int3(size.x, size.y, size.z);
+                AssetNoiseEditor();
+                serializedObject.Update();
             }
 
-            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamicRange"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("colorSpace"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("dimensionality"));
+            if ((textureAsset?.dimensionality ?? this.dimensionality) == Dimensionality._2D)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("size2D"));
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("size3D"));
+            }
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("channels"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("noise"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("scale"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("offset"));
 
-            noise = (RandomType)EditorGUILayout.EnumPopup("Random", noise);
-            scale = EditorGUILayout.Vector4Field("Scale", scale);
-            offset = EditorGUILayout.Vector4Field("Offset", offset);
+            serializedObject.ApplyModifiedProperties();
 
             if (GUILayout.Button("Create"))
             {
@@ -103,10 +109,10 @@ namespace TextureTools
             switch (noise)
             {
                 case RandomType.Perlin:
-                    noiseFunc = (float2 p) => (Noise.cnoise(p) + 1) * 0.5f;
+                    noiseFunc = (float2 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
                     break;
                 case RandomType.Simplex:
-                    noiseFunc = (float2 p) => (Noise.snoise(p) + 1) * 0.5f;
+                    noiseFunc = (float2 p) => (MathNoise.snoise(p) + 1) * 0.5f;
                     break;
                 default:
                     noiseFunc = (float2 p) => random.NextFloat(1);
@@ -140,10 +146,10 @@ namespace TextureTools
             switch (noise)
             {
                 case RandomType.Perlin:
-                    noiseFunc = (float3 p) => (Noise.cnoise(p) + 1) * 0.5f;
+                    noiseFunc = (float3 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
                     break;
                 case RandomType.Simplex:
-                    noiseFunc = (float3 p) => (Noise.snoise(p) + 1) * 0.5f;
+                    noiseFunc = (float3 p) => (MathNoise.snoise(p) + 1) * 0.5f;
                     break;
                 default:
                     noiseFunc = (float3 p) => random.NextFloat(1);
@@ -176,11 +182,51 @@ namespace TextureTools
             AssetDatabase.ImportAsset(path);
         }
 
-        private enum RandomType
+        private void TemporaryNoiseEditor()
         {
-            Random,
-            Perlin,
-            Simplex
+            if (serializedObject == null || serializedObject.targetObject == null)
+            {
+                serializedObject = new SerializedObject(this);
+            }
+
+            serializedObject.Update();
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("textureAsset"));
+            if (GUILayout.Button("Create Asset"))
+            {
+                Save();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+        }
+
+        private void AssetNoiseEditor()
+        {
+            if (serializedObject == null || serializedObject.targetObject == this)
+            {
+                serializedObject = new SerializedObject(textureAsset);
+            }
+        }
+
+        private void Save()
+        {
+            if (!Extensions.GetTexturePath("asset", out string path)) { return; }
+
+            textureAsset = (NoiseTexture)ScriptableObject.CreateInstance(typeof(NoiseTexture));
+
+            textureAsset.dynamicRange = dynamicRange;
+            textureAsset.channels = channels;
+            textureAsset.dimensionality = dimensionality;
+            textureAsset.size2D = size2D;
+            textureAsset.size3D = size3D;
+            textureAsset.offset = offset;
+            textureAsset.scale = scale;
+            textureAsset.noise = noise;
+
+            AssetDatabase.CreateAsset(textureAsset, path);
+            AssetDatabase.ImportAsset(path);
         }
     }
 }
