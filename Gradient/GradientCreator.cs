@@ -48,7 +48,6 @@ namespace TextureTools.Gradient
             }
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("direction"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("colorSpace"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamicRange"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("colorDefinition"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("textureSize"));
