@@ -14,12 +14,18 @@ namespace TextureTools.Gradient
         public GradientTexture textureAsset = null;
 
         public Direction direction = Direction.Horizontal;
-        public ColorSpace colorSpace = ColorSpace.Gamma;
         public DynamicRange dynamicRange = DynamicRange.LDR;
         public ColorDefinition colorDefinition = ColorDefinition.RGB;
         public int2 textureSize = new int2(1024, 4);
         public Anchor[] anchors = new Anchor[0];
 
+        public Direction Direction => textureAsset?.direction ?? direction;
+        public DynamicRange DynamicRange => textureAsset?.dynamicRange ?? dynamicRange;
+        public ColorDefinition ColorDefinition => textureAsset?.colorDefinition ?? colorDefinition;
+        public int2 TextureSize => textureAsset?.textureSize ?? textureSize;
+        public Anchor[] Anchors => textureAsset?.anchors ?? anchors;
+
+        private SerializedObject editorObject = null;
         private SerializedObject serializedObject = null;
 
         [MenuItem("Tools/ifelse/TextureTools/Gradient Creator")]
@@ -39,7 +45,6 @@ namespace TextureTools.Gradient
             else
             {
                 AssetGradientEditor();
-                serializedObject.Update();
             }
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("direction"));
@@ -83,14 +88,24 @@ namespace TextureTools.Gradient
             {
                 serializedObject = new SerializedObject(textureAsset);
             }
+            if (editorObject == null)
+            {
+                editorObject = new SerializedObject(this);
+            }
+
+            serializedObject.Update();
+            editorObject.Update();
+
+            EditorGUILayout.PropertyField(editorObject.FindProperty("textureAsset"));
+            EditorGUILayout.Space();
         }
 
         private void Create()
         {
-            if (!Extensions.GetTexturePath(dynamicRange, out string path)) { return; }
+            if (!Extensions.GetTexturePath(DynamicRange, out string path)) { return; }
 
             Func<float4, float4, float, float4> lerpFunc;
-            switch (colorDefinition)
+            switch (ColorDefinition)
             {
                 default:
                     lerpFunc = (float4 lhs, float4 rhs, float t) => math.lerp(lhs, rhs, t);
@@ -103,22 +118,22 @@ namespace TextureTools.Gradient
                     break;
             }
 
-            Anchor[] anchors = this.anchors.OrderBy(a => a.time).Select(a =>
+            Anchor[] anchors = Anchors.OrderBy(a => a.time).Select(a =>
             {
-                if (direction == Direction.Vertical)
+                if (Direction == Direction.Vertical)
                 {
                     a.time = 1 - a.time;
                 }
-                a.time *= math.select(textureSize.y, textureSize.x, direction == Direction.Horizontal);
+                a.time *= math.select(TextureSize.y, TextureSize.x, Direction == Direction.Horizontal);
                 a.time = math.round(a.time);
                 return a;
             }).ToArray();
 
-            Color[] pixels = new Color[textureSize.x * textureSize.y];
+            Color[] pixels = new Color[TextureSize.x * TextureSize.y];
 
-            if (direction == Direction.Horizontal)
+            if (Direction == Direction.Horizontal)
             {
-                for (int x = 0; x < textureSize.x; x++)
+                for (int x = 0; x < TextureSize.x; x++)
                 {
                     Color color = Color.magenta;
                     if (x < anchors[0].time)
@@ -139,16 +154,16 @@ namespace TextureTools.Gradient
                         }
                     }
 
-                    for (int y = 0; y < textureSize.y; y++)
+                    for (int y = 0; y < TextureSize.y; y++)
                     {
-                        int index = x + y * textureSize.x;
+                        int index = x + y * TextureSize.x;
                         pixels[index] = color;
                     }
                 }
             }
             else
             {
-                for (int y = 0; y < textureSize.y; y++)
+                for (int y = 0; y < TextureSize.y; y++)
                 {
                     Color color = Color.magenta;
                     if (y < anchors[anchors.Length - 1].time)
@@ -169,15 +184,15 @@ namespace TextureTools.Gradient
                         }
                     }
 
-                    for (int x = 0; x < textureSize.x; x++)
+                    for (int x = 0; x < TextureSize.x; x++)
                     {
-                        int index = x + y * textureSize.x;
+                        int index = x + y * TextureSize.x;
                         pixels[index] = color;
                     }
                 }
             }
 
-            Extensions.SaveTexture(pixels, textureSize, dynamicRange, path);
+            Extensions.SaveTexture(pixels, TextureSize, DynamicRange, path);
         }
 
         private void Save()
@@ -187,7 +202,6 @@ namespace TextureTools.Gradient
             textureAsset = (GradientTexture)ScriptableObject.CreateInstance(typeof(GradientTexture));
 
             textureAsset.direction = direction;
-            textureAsset.colorSpace = colorSpace;
             textureAsset.dynamicRange = dynamicRange;
             textureAsset.colorDefinition = colorDefinition;
             textureAsset.textureSize = textureSize;

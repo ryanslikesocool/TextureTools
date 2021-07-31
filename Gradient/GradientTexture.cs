@@ -10,7 +10,6 @@ namespace TextureTools.Gradient
     internal class GradientTexture : ScriptableObject
     {
         public Direction direction = Direction.Horizontal;
-        public ColorSpace colorSpace = ColorSpace.Gamma;
         public DynamicRange dynamicRange = DynamicRange.LDR;
         public ColorDefinition colorDefinition = ColorDefinition.RGB;
         public int2 textureSize = new int2(1024, 4);

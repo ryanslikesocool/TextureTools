@@ -10,7 +10,6 @@ namespace TextureTools.Noise
     internal class NoiseTexture : ScriptableObject
     {
         public DynamicRange dynamicRange = DynamicRange.LDR;
-        public ColorSpace colorSpace = ColorSpace.Gamma;
         public Dimensionality dimensionality = Dimensionality._2D;
         public int2 size2D = 512;
         public int3 size3D = 512;

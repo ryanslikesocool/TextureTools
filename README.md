@@ -29,7 +29,6 @@ The Noise Tool can generate 2D and 3D noise textures with multiple configurable 
 - Dynamic Range: what dynamic range should the result texture use?
     - LDR: Low Dynamic Range.  Less colors and more likely to be web-safe.  2D textures will export as `.png`
     - HDR: High Dynamic Range.  More colors and generally looks better.  2D textures will export as `.exr`
-- Color Space: what color space should Unity use when creating the texture?
 - Size: how large should the texture be (in pixels)?
 - Random: what method should be used when generating colors?  Generation conforms to the Channels setting.  Unused channels will not be calculated
     - Random: assigns a pseudo random value for each channel of each pixel.
@@ -42,7 +41,6 @@ The Noise Tool can generate 2D and 3D noise textures with multiple configurable 
 The Gradient Tool can generate 2D gradients with an indefinite amount of anchors, either horizontally or vertically\
 ![Gradient Tool sample image](images~/gradientSample.jpg)
 - Direction: should the gradient be rendered horizontally or vertically?  Normally best to use the longer axis of the texture size
-- Color Space: what color space should Unity use when creating the texture?
 - Dynamic Range: what dynamic range should the result texture use?
     - LDR: Low Dynamic Range.  Less colors and more likely to be web-safe.  Textures will export as `.png`
     - HDR: High Dynamic Range.  More colors and generally looks better.  Textures will export as `.exr`

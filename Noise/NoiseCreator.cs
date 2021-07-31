@@ -15,7 +15,6 @@ namespace TextureTools.Noise
         public NoiseTexture textureAsset = null;
 
         public DynamicRange dynamicRange = DynamicRange.LDR;
-        public ColorSpace colorSpace = ColorSpace.Gamma;
         public Dimensionality dimensionality = Dimensionality._2D;
         public int2 size2D = 512;
         public int3 size3D = 512;
@@ -24,6 +23,16 @@ namespace TextureTools.Noise
         public float4 scale = 5;
         public RandomType noise = RandomType.Perlin;
 
+        public DynamicRange DynamicRange => textureAsset?.dynamicRange ?? dynamicRange;
+        public Dimensionality Dimensionality => textureAsset?.dimensionality ?? dimensionality;
+        public int2 Size2D => textureAsset?.size2D ?? size2D;
+        public int3 Size3D => textureAsset?.size3D ?? size3D;
+        public Channels Channels => textureAsset?.channels ?? channels;
+        public float4 Offset => textureAsset?.offset ?? offset;
+        public float4 Scale => textureAsset?.scale ?? scale;
+        public RandomType Noise => textureAsset?.noise ?? noise;
+
+        private SerializedObject editorObject = null;
         private SerializedObject serializedObject = null;
 
         [MenuItem("Tools/ifelse/TextureTools/Noise Creator")]
@@ -43,13 +52,11 @@ namespace TextureTools.Noise
             else
             {
                 AssetNoiseEditor();
-                serializedObject.Update();
             }
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamicRange"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("colorSpace"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("dimensionality"));
-            if ((textureAsset?.dimensionality ?? this.dimensionality) == Dimensionality._2D)
+            if (Dimensionality == Dimensionality._2D)
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("size2D"));
             }
@@ -75,23 +82,23 @@ namespace TextureTools.Noise
             Random random = new Random((uint)UnityEngine.Random.Range(uint.MinValue, uint.MaxValue));
 
             TextureFormat textureFormat;
-            switch (channels)
+            switch (Channels)
             {
                 case Channels.R:
-                    textureFormat = dynamicRange == DynamicRange.LDR ? TextureFormat.R8 : TextureFormat.R16;
+                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.R8 : TextureFormat.R16;
                     break;
                 case Channels.RG:
-                    textureFormat = dynamicRange == DynamicRange.LDR ? TextureFormat.RG16 : TextureFormat.RG32;
+                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RG16 : TextureFormat.RG32;
                     break;
                 case Channels.RGB:
-                    textureFormat = dynamicRange == DynamicRange.LDR ? TextureFormat.RGB24 : TextureFormat.RGB48;
+                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RGB24 : TextureFormat.RGB48;
                     break;
                 default:
-                    textureFormat = dynamicRange == DynamicRange.LDR ? TextureFormat.RGBA32 : TextureFormat.RGBA64;
+                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RGBA32 : TextureFormat.RGBA64;
                     break;
             }
 
-            if (dimensionality == Dimensionality._2D)
+            if (Dimensionality == Dimensionality._2D)
             {
                 Create2D(textureFormat, random);
             }
@@ -103,10 +110,10 @@ namespace TextureTools.Noise
 
         private void Create2D(TextureFormat format, Random random)
         {
-            if (!Extensions.GetTexturePath(dynamicRange, out string path)) { return; }
+            if (!Extensions.GetTexturePath(DynamicRange, out string path)) { return; }
 
             Func<float2, float> noiseFunc;
-            switch (noise)
+            switch (Noise)
             {
                 case RandomType.Perlin:
                     noiseFunc = (float2 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
@@ -119,23 +126,23 @@ namespace TextureTools.Noise
                     break;
             }
 
-            Color[] pixels = new Color[size2D.x * size2D.y];
-            for (int x = 0; x < size2D.x; x++)
+            Color[] pixels = new Color[Size2D.x * Size2D.y];
+            for (int x = 0; x < Size2D.x; x++)
             {
-                for (int y = 0; y < size2D.y; y++)
+                for (int y = 0; y < Size2D.y; y++)
                 {
-                    int index = x + y * size2D.x;
-                    float4 scaler = scale / size2D.xyxy;
+                    int index = x + y * Size2D.x;
+                    float4 scaler = Scale / math.max(Size2D.x, Size2D.y);
                     pixels[index] = new Color(
                         noiseFunc((new float2(x, y) + offset.x) * scaler.x),
-                        math.select(0, noiseFunc((new float2(y, x) + offset.y) * scaler.y), (int)channels >= (int)Channels.RG),
-                        math.select(0, noiseFunc((new float2(x, y) + offset.z) * -scaler.z), (int)channels >= (int)Channels.RGB),
-                        math.select(1, noiseFunc((new float2(y, x) + offset.w) * -scaler.w), (int)channels >= (int)Channels.RGBA)
+                        math.select(0, noiseFunc((new float2(y, x) + offset.y) * scaler.y), (int)Channels >= (int)Channels.RG),
+                        math.select(0, noiseFunc((new float2(x, y) + offset.z) * -scaler.z), (int)Channels >= (int)Channels.RGB),
+                        math.select(1, noiseFunc((new float2(y, x) + offset.w) * -scaler.w), (int)Channels >= (int)Channels.RGBA)
                     );
                 }
             }
 
-            Extensions.SaveTexture(pixels, size2D, dynamicRange, path);
+            Extensions.SaveTexture(pixels, Size2D, DynamicRange, path);
         }
 
         private void Create3D(TextureFormat format, Random random)
@@ -143,7 +150,7 @@ namespace TextureTools.Noise
             if (!Extensions.GetTexturePath("asset", out string path)) { return; }
 
             Func<float3, float> noiseFunc;
-            switch (noise)
+            switch (Noise)
             {
                 case RandomType.Perlin:
                     noiseFunc = (float3 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
@@ -156,25 +163,26 @@ namespace TextureTools.Noise
                     break;
             }
 
-            Color[] pixels = new Color[size3D.x * size3D.y * size3D.y];
-            for (int x = 0; x < size3D.x; x++)
+            Color[] pixels = new Color[Size3D.x * Size3D.y * Size3D.y];
+            for (int x = 0; x < Size3D.x; x++)
             {
-                for (int y = 0; y < size3D.y; y++)
+                for (int y = 0; y < Size3D.y; y++)
                 {
-                    for (int z = 0; z < size3D.z; z++)
+                    for (int z = 0; z < Size3D.z; z++)
                     {
-                        int index = x + y * size3D.x + z * size3D.x * size3D.y;
+                        int index = x + y * Size3D.x + z * Size3D.x * Size3D.y;
+                        float4 scaler = Scale / (math.max(Size3D.x, math.max(Size3D.y, Size3D.z)));
                         pixels[index] = new Color(
-                            noiseFunc(new float3(x, y, z) + offset.x),
-                            math.select(0, noiseFunc(new float3(z, y, x) + offset.y), (int)channels >= (int)Channels.RG),
-                            math.select(0, noiseFunc(new float3(x, y, z) + offset.z), (int)channels >= (int)Channels.RGB),
-                            math.select(1, noiseFunc(new float3(z, y, x) + offset.w), (int)channels >= (int)Channels.RGBA)
+                            noiseFunc((new float3(x, y, z) + offset.x) * scaler.x),
+                            math.select(0, (noiseFunc(new float3(z, y, x) + offset.y) * scaler.y), (int)Channels >= (int)Channels.RG),
+                            math.select(0, (noiseFunc(new float3(x, y, z) + offset.z) * scaler.z), (int)Channels >= (int)Channels.RGB),
+                            math.select(1, (noiseFunc(new float3(z, y, x) + offset.w) * scaler.w), (int)Channels >= (int)Channels.RGBA)
                         );
                     }
                 }
             }
 
-            Texture3D texture = new Texture3D(size3D.x, size3D.y, size3D.z, format, 0);
+            Texture3D texture = new Texture3D(Size3D.x, Size3D.y, Size3D.z, format, 0);
             texture.SetPixels(pixels);
             texture.Apply();
 
@@ -208,6 +216,16 @@ namespace TextureTools.Noise
             {
                 serializedObject = new SerializedObject(textureAsset);
             }
+            if (editorObject == null)
+            {
+                editorObject = new SerializedObject(this);
+            }
+
+            serializedObject.Update();
+            editorObject.Update();
+
+            EditorGUILayout.PropertyField(editorObject.FindProperty("textureAsset"));
+            EditorGUILayout.Space();
         }
 
         private void Save()
