@@ -17,12 +17,14 @@ namespace TextureTools.Gradient
         public DynamicRange dynamicRange = DynamicRange.LDR;
         public ColorDefinition colorDefinition = ColorDefinition.RGB;
         public int2 textureSize = new int2(1024, 4);
+        public AnchorMode anchorMode = AnchorMode.Percent;
         public Anchor[] anchors = new Anchor[0];
 
         public Direction Direction => textureAsset?.direction ?? direction;
         public DynamicRange DynamicRange => textureAsset?.dynamicRange ?? dynamicRange;
         public ColorDefinition ColorDefinition => textureAsset?.colorDefinition ?? colorDefinition;
         public int2 TextureSize => textureAsset?.textureSize ?? textureSize;
+        public AnchorMode AnchorMode => textureAsset?.anchorMode ?? anchorMode;
         public Anchor[] Anchors => textureAsset?.anchors ?? anchors;
 
         private SerializedObject editorObject = null;
@@ -51,6 +53,7 @@ namespace TextureTools.Gradient
             EditorGUILayout.PropertyField(serializedObject.FindProperty("dynamicRange"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("colorDefinition"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("textureSize"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("anchorMode"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("anchors"));
 
             serializedObject.ApplyModifiedProperties();
@@ -117,14 +120,28 @@ namespace TextureTools.Gradient
                     break;
             }
 
-            Anchor[] anchors = Anchors.OrderBy(a => a.time).Select(a =>
+            Anchor[] anchors = Anchors.OrderBy(a => AnchorMode == AnchorMode.Percent ? a.time : a.pixel).Select(a =>
             {
                 if (Direction == Direction.Vertical)
                 {
-                    a.time = 1 - a.time;
+                    if (AnchorMode == AnchorMode.Percent)
+                    {
+                        a.time = 1 - a.time;
+                    }
+                    else
+                    {
+                        a.pixel = TextureSize.y - a.pixel;
+                    }
                 }
-                a.time *= math.select(TextureSize.y, TextureSize.x, Direction == Direction.Horizontal);
-                a.time = math.round(a.time);
+                if (AnchorMode == AnchorMode.Percent)
+                {
+                    a.time *= math.select(TextureSize.y, TextureSize.x, Direction == Direction.Horizontal);
+                    a.time = math.round(a.time);
+                }
+                else
+                {
+                    a.time = a.pixel;
+                }
                 return a;
             }).ToArray();
 

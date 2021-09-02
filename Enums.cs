@@ -59,5 +59,11 @@ namespace TextureTools
         HSV,
         HCL
     }
+
+    internal enum AnchorMode
+    {
+        Percent,
+        Pixel
+    }
 }
 #endif

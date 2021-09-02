@@ -1,12 +1,14 @@
 {
   "name": "com.ifelse.texturetools",
   "displayName": "TextureTools",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "unity": "2020.1",
   "description": "Texture creation editor tools for Unity.",
   "documentationUrl": "https://github.com/ryanslikesocool/TextureTools",
   "dependencies": {
-    "com.unity.mathematics": "1.2.1"
+    "com.unity.mathematics": "1.2.1",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.unitywebrequestwww": "1.0.0"
   },
   "author": {
     "name": "Ryan Boyer",

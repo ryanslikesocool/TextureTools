@@ -11,6 +11,7 @@ namespace TextureTools.Gradient
     internal struct Anchor
     {
         [Range(0, 1)] public float time;
+        public float pixel;
         public Color color;
 
         public static float4 Lerp(Anchor lhs, Anchor rhs, int pixel, Func<float4, float4, float, float4> lerp)

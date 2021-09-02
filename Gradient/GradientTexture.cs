@@ -14,6 +14,7 @@ namespace TextureTools.Gradient
         public ColorDefinition colorDefinition = ColorDefinition.RGB;
         public int2 textureSize = new int2(1024, 4);
         public Anchor[] anchors = new Anchor[0];
+        public AnchorMode anchorMode = AnchorMode.Percent;
     }
 }
 #endif
