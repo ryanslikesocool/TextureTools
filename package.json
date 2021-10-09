@@ -1,7 +1,7 @@
 {
   "name": "com.ifelse.texturetools",
   "displayName": "TextureTools",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "unity": "2020.1",
   "description": "Texture creation editor tools for Unity.",
   "documentationUrl": "https://github.com/ryanslikesocool/TextureTools",
