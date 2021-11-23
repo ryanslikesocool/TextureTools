@@ -13,13 +13,13 @@ Texture creation editor tools for Unity
 - Import into Plugins
 
 ## Why?
-It's 2021.  Computer graphics have been around for a few decades now and I still haven't seen anything that generates *good* gradients.  Most graphics applications (Photoshop, Sketch, etc) think they know what I want and compress certin textures on export, so there's a bit of noise and whatnot.  No compression here!
+It's 2021.  Computer graphics have been around for a few decades now and I still haven't seen anything that generates *good* gradients.  Most graphics applications (Photoshop, Sketch, etc) think they know what I want and compress certin textures on export, so there tends to be artifacts.  No compression here!
 
 ## Usage
 Use to create high-quality textures for use in projects.
-Windows can be found in the menu bar under `Tools/ifelse/TextureTools`
+Texture assets can be found in the menu bar under `Assets/Create/Developed With Love/TextureTools`
 
-## Noise Tool (`Tools/ifelse/TextureTools/Noise Creator`)
+## Noise Tool (`Assets/Create/Developed With Love/TextureTools/Noise Texture`)
 The Noise Tool can generate 2D and 3D noise textures with multiple configurable options.\
 ![Noise Tool sample image](images~/noiseSample.jpg)
 - Dimensionality: is the result texture 2D or 3D?
@@ -37,7 +37,7 @@ The Noise Tool can generate 2D and 3D noise textures with multiple configurable 
 - Scale: how much should the UV coordinates be scaled?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
 - Offset: how far should the UV coordinates be offset?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
 
-## Gradient Tool (`Tools/ifelse/TextureTools/Gradient Creator`)
+## Gradient Tool (`Assets/Create/Developed With Love/TextureTools/Gradient Texture`)
 The Gradient Tool can generate 2D gradients with an indefinite amount of anchors, either horizontally or vertically\
 ![Gradient Tool sample image](images~/gradientSample.jpg)
 - Direction: should the gradient be rendered horizontally or vertically?  Normally best to use the longer axis of the texture size

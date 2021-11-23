@@ -1,4 +1,4 @@
-// Made with love by Ryan Boyer http://ryanjboyer.com <3
+// Developed with love by Ryan Boyer http://ryanjboyer.com <3
 
 #if UNITY_EDITOR
 using System.IO;
@@ -7,68 +7,55 @@ using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEditor;
 
-namespace TextureTools
-{
-    internal static class Extensions
-    {
+namespace TextureTools {
+    internal static class Extensions {
         internal static bool WithinRange(this int v, int x, int y) => v >= x && v <= y;
 
         #region File
-        internal static bool GetTexturePath(DynamicRange dynamicRange, out string path)
-        {
+        internal static bool GetTexturePath(DynamicRange dynamicRange, out string path) {
             string extension = dynamicRange == DynamicRange.HDR ? "exr" : "png";
             return GetTexturePath(extension, out path);
         }
 
-        internal static bool GetTexturePath(string extension, out string path)
-        {
+        internal static bool GetTexturePath(string extension, out string path) {
             path = EditorUtility.SaveFilePanelInProject("Save Texture", "New Texture", extension, "Save the texture");
             return path.Length > 0;
         }
 
-        internal static void SaveTexture(Color[] pixels, int2 size, DynamicRange dynamicRange, string path)
-        {
+        internal static void SaveTexture(Color[] pixels, int2 size, DynamicRange dynamicRange, string path) {
             Texture2D texture = new Texture2D(size.x, size.y, DefaultFormat.HDR, TextureCreationFlags.None);
             texture.SetPixels(pixels);
             texture.Apply();
 
             byte[] encodedTex;
-            if (dynamicRange == DynamicRange.HDR)
-            {
+            if (dynamicRange == DynamicRange.HDR) {
                 encodedTex = texture.EncodeToEXR();
-            }
-            else
-            {
+            } else {
                 encodedTex = texture.EncodeToPNG();
             }
 
-            using (FileStream stream = File.Open(path, FileMode.OpenOrCreate))
-            {
+            using (FileStream stream = File.Open(path, FileMode.OpenOrCreate)) {
                 stream.Write(encodedTex, 0, encodedTex.Length);
             }
         }
         #endregion
 
         #region Color
-        internal static float3 LerpHSV(float3 lhs, float3 rhs, float t)
-        {
+        internal static float3 LerpHSV(float3 lhs, float3 rhs, float t) {
             float h = 0;
             float d = rhs.x - lhs.x;
-            if (lhs.x > rhs.x)
-            {
+            if (lhs.x > rhs.x) {
                 float h3 = rhs.x;
                 rhs.x = lhs.x;
                 lhs.x = h3;
                 d = -d;
                 t = 1 - t;
             }
-            if (d > 0.5f)
-            {
+            if (d > 0.5f) {
                 lhs.x = lhs.x + 1;
                 h = (lhs.x + t * (rhs.x - lhs.x)) % 1;
             }
-            if (d <= 0.5f)
-            {
+            if (d <= 0.5f) {
                 h = lhs.x + t * d;
             }
             return new float3
@@ -79,8 +66,7 @@ namespace TextureTools
             );
         }
 
-        internal static float3 RGBtoHSV(float3 rgb)
-        {
+        internal static float3 RGBtoHSV(float3 rgb) {
             float r = rgb.x;
             float g = rgb.y;
             float b = rgb.z;
@@ -92,8 +78,7 @@ namespace TextureTools
             float h = 0, s = 0;
             float v = max;
 
-            if (deltaMax != 0)
-            {
+            if (deltaMax != 0) {
                 s = deltaMax / max;
 
                 float over3 = 0.333f;
@@ -103,25 +88,18 @@ namespace TextureTools
                 float deltaG = (((max - g) * over6) + (deltaMax * 0.5f)) / deltaMax;
                 float deltaB = (((max - b) * over6) + (deltaMax * 0.5f)) / deltaMax;
 
-                if (r == max)
-                {
+                if (r == max) {
                     h = deltaB - deltaG;
-                }
-                else if (g == max)
-                {
+                } else if (g == max) {
                     h = over3 + deltaR - deltaB;
-                }
-                else if (b == max)
-                {
+                } else if (b == max) {
                     h = over3 * 2 + deltaG - deltaR;
                 }
 
-                if (h < 0)
-                {
+                if (h < 0) {
                     h += 1;
                 }
-                if (h > 1)
-                {
+                if (h > 1) {
                     h -= 1;
                 }
             }
@@ -129,18 +107,15 @@ namespace TextureTools
             return new float3(h, s, v);
         }
 
-        internal static float3 HSVtoRGB(float3 hsv)
-        {
+        internal static float3 HSVtoRGB(float3 hsv) {
             float h = hsv.x;
             float s = hsv.y;
             float v = hsv.z;
             float r = v, g = v, b = v;
 
-            if (s != 0)
-            {
+            if (s != 0) {
                 float var_h = h * 6;
-                if (var_h == 6)
-                {
+                if (var_h == 6) {
                     var_h = 0;
                 }
                 float i = math.floor(var_h);
@@ -148,8 +123,7 @@ namespace TextureTools
                 float v2 = v * (1 - s * (var_h - i));
                 float v3 = v * (1 - s * (1 - (var_h - i)));
 
-                switch (i)
-                {
+                switch (i) {
                     case 0:
                         r = v;
                         g = v3;
@@ -186,8 +160,7 @@ namespace TextureTools
             return new float3(r, g, b);
         }
 
-        internal static float3 RGBtoHCL(float3 rgb)
-        {
+        internal static float3 RGBtoHCL(float3 rgb) {
             float r = rgb.x;
             float g = rgb.y;
             float b = rgb.z;
@@ -203,8 +176,7 @@ namespace TextureTools
             return new float3(h, c, l);
         }
 
-        internal static float3 HCLtoRGB(float3 hcl)
-        {
+        internal static float3 HCLtoRGB(float3 hcl) {
             float x = hcl.x / 100f;
             float y = hcl.y / 100f;
             float z = hcl.z / 100f;
