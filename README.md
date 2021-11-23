@@ -46,7 +46,7 @@ The Gradient Tool can generate 2D gradients with an indefinite amount of anchors
     - HDR: High Dynamic Range.  More colors and generally looks better.  Textures will export as `.exr`
 - Color Definition: how should the gradient be rendered?
     - RGB: classic, "lazy" interpolation.  Direct interpolation between values.  The same as using `Color.Lerp`.
-    - HSV: convert colors to HSV color space, interpolate (mainly based on hue), then convert back to RGB.  Looks much better than RGB, but is a more expensive to render
+    - HSV: convert colors to HSV color space, interpolate (mainly based on hue), then convert back to RGB.  Looks much better than RGB, but is a more expensive to render.  NOTE: The HSV calculation has issues with large jumps between colors.
     - HCL: convert colors to HCL color space, interpolate, then convert back to RGB.  Looks similar to HSV, but works closer to how the human eye percieves brightness.  The most expensive to render.
 - Texture Size: how large should the result texture be? (in pixels)
 - Anchors: an indefinite amount of anchors used to create the gradient.
