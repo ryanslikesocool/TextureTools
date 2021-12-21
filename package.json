@@ -7,8 +7,8 @@
   "documentationUrl": "https://github.com/ryanslikesocool/TextureTools",
   "dependencies": {
     "com.unity.mathematics": "1.2.5",
-    "com.unity.modules.imageconversion": "",
-    "com.unity.modules.unitywebrequestwww": ""
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.unitywebrequestwww": "1.0.0"
   },
   "author": {
     "name": "Ryan Boyer",
