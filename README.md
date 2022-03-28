@@ -13,7 +13,7 @@ Texture creation editor tools for Unity
 - Import into Plugins
 
 ## Why?
-It's 2021.  Computer graphics have been around for a few decades now and I still haven't seen anything that generates *good* gradients.  Most graphics applications (Photoshop, Sketch, etc) think they know what I want and compress certin textures on export, so there tends to be artifacts.  No compression here!
+It's 2022.  Computer graphics have been around for a few decades now and I still haven't seen anything that generates *good* gradients.  Most graphics applications (Photoshop, Sketch, etc) think they know what I want and compress certin textures on export, so there tends to be artifacts.  No compression here!
 
 ## Usage
 Use to create high-quality textures for use in projects.
