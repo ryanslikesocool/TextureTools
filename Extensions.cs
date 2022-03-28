@@ -2,10 +2,10 @@
 
 #if UNITY_EDITOR
 using System.IO;
-using UnityEngine;
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace TextureTools {
     internal static class Extensions {
@@ -23,7 +23,7 @@ namespace TextureTools {
         }
 
         internal static void SaveTexture(Color[] pixels, int2 size, DynamicRange dynamicRange, string path) {
-            Texture2D texture = new Texture2D(size.x, size.y, DefaultFormat.HDR, TextureCreationFlags.None);
+            Texture2D texture = new Texture2D(size.x, size.y, dynamicRange == DynamicRange.LDR ? DefaultFormat.LDR : DefaultFormat.HDR, TextureCreationFlags.None);
             texture.SetPixels(pixels);
             texture.Apply();
 

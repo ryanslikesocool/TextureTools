@@ -2,11 +2,11 @@
 
 #if UNITY_EDITOR
 using System;
-using UnityEngine;
-using UnityEditor;
 using Unity.Mathematics;
-using Random = Unity.Mathematics.Random;
+using UnityEditor;
+using UnityEngine;
 using MathNoise = Unity.Mathematics.noise;
+using Random = Unity.Mathematics.Random;
 
 namespace TextureTools.Noise {
     [CustomEditor(typeof(NoiseTexture))]
