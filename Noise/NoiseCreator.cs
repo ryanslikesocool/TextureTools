@@ -41,21 +41,13 @@ namespace TextureTools.Noise {
         private void Create() {
             Random random = new Random((uint)UnityEngine.Random.Range(uint.MinValue, uint.MaxValue));
 
-            TextureFormat textureFormat;
-            switch (Channels) {
-                case Channels.R:
-                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.R8 : TextureFormat.R16;
-                    break;
-                case Channels.RG:
-                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RG16 : TextureFormat.RG32;
-                    break;
-                case Channels.RGB:
-                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RGB24 : TextureFormat.RGB48;
-                    break;
-                default:
-                    textureFormat = DynamicRange == DynamicRange.LDR ? TextureFormat.RGBA32 : TextureFormat.RGBA64;
-                    break;
-            }
+            TextureFormat textureFormat = Channels switch {
+                Channels.R => DynamicRange == DynamicRange.LDR ? TextureFormat.R8 : TextureFormat.R16,
+                Channels.RG => DynamicRange == DynamicRange.LDR ? TextureFormat.RG16 : TextureFormat.RG32,
+                Channels.RGB => DynamicRange == DynamicRange.LDR ? TextureFormat.RGB24 : TextureFormat.RGB48,
+                Channels.RGBA => DynamicRange == DynamicRange.LDR ? TextureFormat.RGBA32 : TextureFormat.RGBA64,
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
             if (Dimensionality == Dimensionality._2D) {
                 Create2D(textureFormat, random);
@@ -67,30 +59,40 @@ namespace TextureTools.Noise {
         private void Create2D(TextureFormat format, Random random) {
             if (!Extensions.GetTexturePath(DynamicRange, out string path)) { return; }
 
-            Func<float2, float> noiseFunc;
-            switch (Noise) {
-                case RandomType.Perlin:
-                    noiseFunc = (float2 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
-                    break;
-                case RandomType.Simplex:
-                    noiseFunc = (float2 p) => (MathNoise.snoise(p) + 1) * 0.5f;
-                    break;
-                default:
-                    noiseFunc = (float2 p) => random.NextFloat(1);
-                    break;
-            }
+            Func<float2, float> noiseFunc2d = Noise switch {
+                RandomType.Perlin => (float2 p) => (MathNoise.cnoise(p) + 1) * 0.5f,
+                RandomType.Simplex => (float2 p) => (MathNoise.snoise(p) + 1) * 0.5f,
+                _ => (float2 p) => random.NextFloat(1)
+            };
+
+            Func<float4, float> noiseFunc4d = Noise switch {
+                RandomType.Perlin => (float4 p) => (MathNoise.cnoise(p) + 1) * 0.5f,
+                RandomType.Simplex => (float4 p) => (MathNoise.snoise(p) + 1) * 0.5f,
+                _ => (float4 p) => random.NextFloat(1)
+            };
 
             Color[] pixels = new Color[Size2D.x * Size2D.y];
             for (int x = 0; x < Size2D.x; x++) {
                 for (int y = 0; y < Size2D.y; y++) {
                     int index = x + y * Size2D.x;
-                    float4 scaler = Scale / math.max(Size2D.x, Size2D.y);
-                    pixels[index] = new Color(
-                        noiseFunc((new float2(x, y) + Offset.x) * scaler.x),
-                        math.select(0, noiseFunc((new float2(y, x) + Offset.y) * scaler.y), (int)Channels >= (int)Channels.RG),
-                        math.select(0, noiseFunc((new float2(x, y) + Offset.z) * -scaler.z), (int)Channels >= (int)Channels.RGB),
-                        math.select(1, noiseFunc((new float2(y, x) + Offset.w) * -scaler.w), (int)Channels >= (int)Channels.RGBA)
-                    );
+
+                    if (!textureAsset.wrapping) {
+                        float4 scaler = Scale / math.max(Size2D.x, Size2D.y);
+
+                        pixels[index] = new Color(
+                           noiseFunc2d((new float2(x, y) + Offset.x) * scaler.x),
+                           math.select(0, noiseFunc2d((new float2(y, x) + Offset.y) * scaler.y), (int)Channels >= (int)Channels.RG),
+                           math.select(0, noiseFunc2d((new float2(x, y) + Offset.z) * scaler.z), (int)Channels >= (int)Channels.RGB),
+                           math.select(1, noiseFunc2d((new float2(y, x) + Offset.w) * scaler.w), (int)Channels >= (int)Channels.RGBA)
+                       );
+                    } else {
+                        pixels[index] = new Color(
+                            WrappingNoise(new float2(x, y) + Offset.x, Size2D, Scale.x, noiseFunc4d),
+                            math.select(0, WrappingNoise(new float2(y, x) + Offset.y, Size2D, Scale.y, noiseFunc4d), (int)Channels >= (int)Channels.RG),
+                            math.select(0, WrappingNoise(new float2(x, y) + Offset.z, Size2D, Scale.z, noiseFunc4d), (int)Channels >= (int)Channels.RGB),
+                            math.select(1, WrappingNoise(new float2(y, x) + Offset.w, Size2D, Scale.w, noiseFunc4d), (int)Channels >= (int)Channels.RGBA)
+                        );
+                    }
                 }
             }
 
@@ -100,18 +102,11 @@ namespace TextureTools.Noise {
         private void Create3D(TextureFormat format, Random random) {
             if (!Extensions.GetTexturePath("asset", out string path)) { return; }
 
-            Func<float3, float> noiseFunc;
-            switch (Noise) {
-                case RandomType.Perlin:
-                    noiseFunc = (float3 p) => (MathNoise.cnoise(p) + 1) * 0.5f;
-                    break;
-                case RandomType.Simplex:
-                    noiseFunc = (float3 p) => (MathNoise.snoise(p) + 1) * 0.5f;
-                    break;
-                default:
-                    noiseFunc = (float3 p) => random.NextFloat(1);
-                    break;
-            }
+            Func<float3, float> noiseFunc = Noise switch {
+                RandomType.Perlin => (float3 p) => (MathNoise.cnoise(p) + 1) * 0.5f,
+                RandomType.Simplex => (float3 p) => (MathNoise.snoise(p) + 1) * 0.5f,
+                _ => (float3 p) => random.NextFloat(1)
+            };
 
             Color[] pixels = new Color[Size3D.x * Size3D.y * Size3D.y];
             for (int x = 0; x < Size3D.x; x++) {
@@ -135,6 +130,25 @@ namespace TextureTools.Noise {
 
             AssetDatabase.CreateAsset(texture, path);
             AssetDatabase.ImportAsset(path);
+        }
+
+        // https://www.gamedev.net/blog/33/entry-2138456-seamless-noise/
+        private float WrappingNoise(float2 position, float2 size, float2 scale, Func<float4, float> function) {
+            float s = position.x / size.x;
+            float t = position.y / size.y;
+
+            math.sincos(s * 2 * math.PI, out float sinS, out float cosS);
+            math.sincos(t * 2 * math.PI, out float sinT, out float cosT);
+
+            float divX = scale.x / (2f * math.PI);
+            float divY = scale.y / (2f * math.PI);
+
+            float nx = (-scale.x * 0.5f) + math.cos(s * 2f * math.PI) * divX;
+            float ny = (-scale.y * 0.5f) + math.cos(t * 2f * math.PI) * divY;
+            float nz = (-scale.x * 0.5f) + math.sin(s * 2f * math.PI) * divX;
+            float nw = (-scale.y * 0.5f) + math.sin(t * 2f * math.PI) * divY;
+
+            return function(new float4(nx, ny, nz, nw));
         }
     }
 }

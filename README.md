@@ -36,6 +36,7 @@ The Noise Tool can generate 2D and 3D noise textures with multiple configurable 
     - Simplex: use the simplex noise method for each channel based on UV coordinates.  Uses Scale and Offset settings.
 - Scale: how much should the UV coordinates be scaled?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
 - Offset: how far should the UV coordinates be offset?  Uniform for each channel (X -> R, Y -> G, Z -> B, W -> A).
+- Wrapping: should the texture wrap?  Currently only works for Perlin and Simplex noise in 2D.
 
 ## Gradient Tool (`Assets/Create/Developed With Love/TextureTools/Gradient Texture`)
 The Gradient Tool can generate 2D gradients with an indefinite amount of anchors, either horizontally or vertically\

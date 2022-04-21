@@ -1,8 +1,8 @@
 // Developed with love by Ryan Boyer http://ryanjboyer.com <3
 
 #if UNITY_EDITOR
-using UnityEngine;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace TextureTools.Noise {
     [CreateAssetMenu(menuName = "Developed With Love/TextureTools/Noise Texture")]
@@ -15,6 +15,7 @@ namespace TextureTools.Noise {
         public float4 offset = 0;
         public float4 scale = 5;
         public RandomType noise = RandomType.Perlin;
+        public bool wrapping = true;
     }
 }
 #endif
