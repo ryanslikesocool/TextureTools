@@ -137,9 +137,6 @@ namespace TextureTools.Noise {
             float s = position.x / size.x;
             float t = position.y / size.y;
 
-            math.sincos(s * 2 * math.PI, out float sinS, out float cosS);
-            math.sincos(t * 2 * math.PI, out float sinT, out float cosT);
-
             float divX = scale.x / (2f * math.PI);
             float divY = scale.y / (2f * math.PI);
 
